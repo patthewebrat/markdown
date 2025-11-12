@@ -1,0 +1,439 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Markdown Magic</title>
+    <script src="https://unpkg.com/vue@3/dist/vue.global.prod.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/marked@16.0.0/lib/marked.umd.js"></script>
+    <script src="https://unpkg.com/turndown/dist/turndown.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #f8fafc;
+            height: 100vh;
+        }
+
+        .container {
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+        }
+
+        .header {
+            background: white;
+            border-bottom: 1px solid #e2e8f0;
+            padding: 1rem 2rem;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+        }
+
+        .header h1 {
+            color: #1a202c;
+            font-weight: 600;
+            font-size: 1.5rem;
+        }
+
+        .toolbar {
+            background: #f7fafc;
+            border-bottom: 1px solid #e2e8f0;
+            padding: 0.75rem 1rem;
+            display: flex;
+            gap: 0.5rem;
+            flex-wrap: wrap;
+        }
+
+        .toolbar button {
+            background: #f7fafc;
+            border: 1px solid #e2e8f0;
+            border-radius: 4px;
+            padding: 0.5rem 0.75rem;
+            cursor: pointer;
+            font-size: 0.875rem;
+            font-weight: 500;
+            color: #4a5568;
+            transition: all 0.2s;
+        }
+
+        .toolbar button:hover {
+            background: #edf2f7;
+            border-color: #cbd5e0;
+        }
+
+        .main-content {
+            flex: 1;
+            display: flex;
+            gap: 1px;
+            background: #e2e8f0;
+        }
+
+        .column {
+            flex: 1;
+            background: white;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .column-header {
+            background: #f7fafc;
+            border-bottom: 1px solid #e2e8f0;
+            padding: 1rem;
+            font-weight: 600;
+            color: #2d3748;
+            font-size: 0.875rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .editor {
+            flex: 1;
+            border: none;
+            outline: none;
+            padding: 1.5rem;
+            font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+            font-size: 14px;
+            line-height: 1.6;
+            resize: none;
+            background: white;
+        }
+
+        .html-preview {
+            flex: 1;
+            padding: 1.5rem;
+            overflow-y: auto;
+            line-height: 1.6;
+            color: #2d3748;
+        }
+
+        .html-preview h1, .html-preview h2, .html-preview h3, 
+        .html-preview h4, .html-preview h5, .html-preview h6,
+        .html-editor h1, .html-editor h2, .html-editor h3, 
+        .html-editor h4, .html-editor h5, .html-editor h6 {
+            margin: 1.5rem 0 0.75rem 0;
+            color: #1a202c;
+            font-weight: 600;
+        }
+
+        .html-preview h1, .html-editor h1 { 
+            font-size: 2rem; 
+            border-bottom: 2px solid #e2e8f0;
+            padding-bottom: 0.5rem;
+        }
+        .html-preview h2, .html-editor h2 { 
+            font-size: 1.5rem; 
+            border-bottom: 1px solid #e2e8f0;
+            padding-bottom: 0.25rem;
+        }
+        .html-preview h3, .html-editor h3 { font-size: 1.25rem; }
+        .html-preview h4, .html-editor h4 { font-size: 1.1rem; }
+        .html-preview h5, .html-editor h5 { font-size: 1rem; }
+        .html-preview h6, .html-editor h6 { font-size: 0.9rem; color: #4a5568; }
+
+        .html-preview p, .html-editor p {
+            margin: 0.75rem 0;
+            line-height: 1.6;
+        }
+
+        .html-preview ul, .html-preview ol,
+        .html-editor ul, .html-editor ol {
+            margin: 0.75rem 0;
+            padding-left: 2rem;
+        }
+
+        .html-preview li, .html-editor li {
+            margin: 0.25rem 0;
+            line-height: 1.5;
+        }
+
+        .html-preview ul li, .html-editor ul li {
+            list-style-type: disc;
+        }
+
+        .html-preview ol li, .html-editor ol li {
+            list-style-type: decimal;
+        }
+
+        .html-preview code, .html-editor code {
+            background: #fef5e7;
+            border: 1px solid #f6e05e;
+            border-radius: 4px;
+            padding: 0.125rem 0.375rem;
+            font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+            font-size: 0.875em;
+            color: #d69e2e;
+            font-weight: 500;
+        }
+
+        .html-preview pre, .html-editor pre {
+            background: #2d3748;
+            border-radius: 6px;
+            padding: 1.25rem;
+            margin: 1rem 0;
+            overflow-x: auto;
+            border: 1px solid #4a5568;
+        }
+
+        .html-preview pre code, .html-editor pre code {
+            background: none;
+            border: none;
+            padding: 0;
+            color: #e2e8f0;
+            font-weight: normal;
+        }
+
+        .html-preview blockquote, .html-editor blockquote {
+            border-left: 4px solid #4299e1;
+            background: #ebf8ff;
+            padding: 1rem 1.25rem;
+            margin: 1rem 0;
+            color: #2b6cb0;
+            border-radius: 0 4px 4px 0;
+            font-style: italic;
+        }
+
+        .html-preview a, .html-editor a {
+            color: #3182ce;
+            text-decoration: none;
+            border-bottom: 1px solid transparent;
+            transition: all 0.2s;
+        }
+
+        .html-preview a:hover, .html-editor a:hover {
+            color: #2c5282;
+            border-bottom-color: #3182ce;
+        }
+
+        .html-preview strong, .html-editor strong {
+            font-weight: 600;
+            color: #1a202c;
+        }
+
+        .html-preview em, .html-editor em {
+            font-style: italic;
+            color: #4a5568;
+        }
+
+        .html-preview hr, .html-editor hr {
+            border: none;
+            border-top: 2px solid #e2e8f0;
+            margin: 2rem 0;
+        }
+
+        .html-preview table, .html-editor table {
+            border-collapse: collapse;
+            width: 100%;
+            margin: 1rem 0;
+            border: 1px solid #e2e8f0;
+            border-radius: 4px;
+            overflow: hidden;
+        }
+
+        .html-preview th, .html-preview td,
+        .html-editor th, .html-editor td {
+            border: 1px solid #e2e8f0;
+            padding: 0.75rem;
+            text-align: left;
+        }
+
+        .html-preview th, .html-editor th {
+            background: #f7fafc;
+            font-weight: 600;
+            color: #2d3748;
+        }
+
+        .html-editor {
+            flex: 1;
+            border: none;
+            outline: none;
+            padding: 1.5rem;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            font-size: 14px;
+            line-height: 1.6;
+            resize: none;
+            background: white;
+        }
+    </style>
+</head>
+<body>
+    <div id="app">
+        <div class="container">
+            <div class="header">
+                <h1>Markdown Magic</h1>
+            </div>
+            
+
+            <div class="main-content">
+                <div class="column">
+                    <div class="column-header">Markdown</div>
+                    <div class="toolbar">
+                        <button @click="insertFormat('**', '**')" title="Bold">**Bold**</button>
+                        <button @click="insertFormat('*', '*')" title="Italic">*Italic*</button>
+                        <button @click="insertFormat('`', '`')" title="Code">`Code`</button>
+                        <button @click="insertFormat('# ', '')" title="Heading 1"># H1</button>
+                        <button @click="insertFormat('## ', '')" title="Heading 2">## H2</button>
+                        <button @click="insertFormat('### ', '')" title="Heading 3">### H3</button>
+                        <button @click="insertFormat('- ', '')" title="List">• List</button>
+                        <button @click="insertFormat('> ', '')" title="Quote">> Quote</button>
+                        <button @click="insertFormat('[', '](url)')" title="Link">[Link]()</button>
+                    </div>
+                    <textarea 
+                        class="editor" 
+                        v-model="markdownContent" 
+                        @input="updateFromMarkdown"
+                        placeholder="Type your markdown here..."
+                        ref="markdownEditor"
+                    ></textarea>
+                </div>
+                
+                <div class="column">
+                    <div class="column-header">HTML</div>
+                    <div class="toolbar">
+                        <button @click="formatHtml('bold')" title="Bold"><strong>B</strong></button>
+                        <button @click="formatHtml('italic')" title="Italic"><em>I</em></button>
+                        <button @click="formatHtml('underline')" title="Underline"><u>U</u></button>
+                        <button @click="formatHtml('formatBlock', 'h1')" title="Heading 1">H1</button>
+                        <button @click="formatHtml('formatBlock', 'h2')" title="Heading 2">H2</button>
+                        <button @click="formatHtml('formatBlock', 'h3')" title="Heading 3">H3</button>
+                        <button @click="formatHtml('insertUnorderedList')" title="Bullet List">• List</button>
+                        <button @click="formatHtml('insertOrderedList')" title="Numbered List">1. List</button>
+                        <button @click="formatHtml('createLink')" title="Link">Link</button>
+                    </div>
+                    <div 
+                        class="html-editor" 
+                        contenteditable="true"
+                        @input="updateFromHtml"
+                        @paste="handlePaste"
+                        @keydown.enter="handleEnter"
+                        v-html="htmlContent"
+                        ref="htmlEditor"
+                    ></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const { createApp } = Vue;
+
+        createApp({
+            data() {
+                return {
+                    markdownContent: '# Welcome to Markdown Magic\n\nThis is a **bidirectional** markdown editor. Edit either side and watch the magic happen!\n\n## Features\n\n- Real-time conversion\n- WYSIWYG toolbar\n- Clean, minimal design\n\n### Try it out:\n\n1. Edit this markdown\n2. Or click in the HTML side and edit there\n3. Watch both sides update automatically\n\n> **Tip:** Use the toolbar buttons for quick formatting!',
+                    htmlContent: '',
+                    turndownService: null,
+                    isUpdatingFromMarkdown: false,
+                    isUpdatingFromHtml: false
+                }
+            },
+            mounted() {
+                marked.setOptions({
+                    breaks: true,
+                    gfm: true,
+                    pedantic: false
+                });
+                
+                this.turndownService = new TurndownService({
+                    headingStyle: 'atx',
+                    codeBlockStyle: 'fenced',
+                    br: '\n'
+                });
+                
+                this.updateFromMarkdown();
+            },
+            methods: {
+                updateFromMarkdown() {
+                    if (this.isUpdatingFromHtml) return;
+                    
+                    this.isUpdatingFromMarkdown = true;
+                    this.htmlContent = marked.parse(this.markdownContent);
+                    this.$nextTick(() => {
+                        this.isUpdatingFromMarkdown = false;
+                    });
+                },
+                
+                updateFromHtml(event) {
+                    if (this.isUpdatingFromMarkdown) return;
+                    
+                    this.isUpdatingFromHtml = true;
+                    let htmlContent = event.target.innerHTML;
+                    
+                    // Normalize contenteditable line breaks for different browsers
+                    // Chrome/Safari creates <div> elements, Firefox creates <br>
+                    htmlContent = htmlContent.replace(/<div><br><\/div>/g, '<br>');
+                    htmlContent = htmlContent.replace(/<div>/g, '<br>');
+                    htmlContent = htmlContent.replace(/<\/div>/g, '');
+                    
+                    this.markdownContent = this.turndownService.turndown(htmlContent);
+                    this.$nextTick(() => {
+                        this.isUpdatingFromHtml = false;
+                    });
+                },
+                
+                handlePaste(event) {
+                    event.preventDefault();
+                    
+                    // Try to get HTML content first, fall back to plain text
+                    const htmlData = event.clipboardData.getData('text/html');
+                    const textData = event.clipboardData.getData('text/plain');
+                    
+                    if (htmlData) {
+                        document.execCommand('insertHTML', false, htmlData);
+                    } else {
+                        document.execCommand('insertText', false, textData);
+                    }
+                    
+                    // Trigger update after paste
+                    this.$nextTick(() => {
+                        this.updateFromHtml({ target: this.$refs.htmlEditor });
+                    });
+                },
+                
+                handleEnter(event) {
+                    event.preventDefault();
+                    document.execCommand('insertHTML', false, '<br>');
+                },
+                
+                insertFormat(before, after) {
+                    const textarea = this.$refs.markdownEditor;
+                    const start = textarea.selectionStart;
+                    const end = textarea.selectionEnd;
+                    const selectedText = this.markdownContent.substring(start, end);
+                    
+                    const replacement = before + selectedText + after;
+                    this.markdownContent = this.markdownContent.substring(0, start) + replacement + this.markdownContent.substring(end);
+                    
+                    this.$nextTick(() => {
+                        textarea.focus();
+                        const newCursorPos = start + before.length + selectedText.length + after.length;
+                        textarea.setSelectionRange(newCursorPos, newCursorPos);
+                        this.updateFromMarkdown();
+                    });
+                },
+                
+                formatHtml(command, value = null) {
+                    this.$refs.htmlEditor.focus();
+                    
+                    if (command === 'createLink') {
+                        const url = prompt('Enter URL:');
+                        if (url) {
+                            document.execCommand('createLink', false, url);
+                        }
+                    } else {
+                        document.execCommand(command, false, value);
+                    }
+                    
+                    // Trigger update after formatting
+                    this.$nextTick(() => {
+                        this.updateFromHtml({ target: this.$refs.htmlEditor });
+                    });
+                }
+            }
+        }).mount('#app');
+    </script>
+</body>
+</html>
