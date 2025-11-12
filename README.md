@@ -62,7 +62,7 @@ No installation, no build process, no dependencies to install.
 
 ## 🤝 Contributing
 
-Feel free to open issues or submit pull requests to improve Markdown Magic!
+Feel free to open issues or submit pull requests to improve Markdown Editor!
 
 ## 📄 License
 
