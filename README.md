@@ -1,4 +1,4 @@
-# Markdown Magic ✨
+# Markdown Editor ✨
 
 A real-time bidirectional markdown-HTML editor built with Vue.js. Edit markdown and see HTML instantly, or edit HTML and see markdown update automatically.
 
