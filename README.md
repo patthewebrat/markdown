@@ -1,6 +1,8 @@
 # Markdown Magic ✨
 
-A beautiful, real-time bidirectional markdown-HTML editor built with Vue.js. Edit markdown and see HTML instantly, or edit HTML and see markdown update automatically.
+A real-time bidirectional markdown-HTML editor built with Vue.js. Edit markdown and see HTML instantly, or edit HTML and see markdown update automatically.
+
+Use it here - https://markdown-cinder.netlify.app
 
 ## 🚀 Features
 
