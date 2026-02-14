@@ -31,12 +31,52 @@
             border-bottom: 1px solid #e2e8f0;
             padding: 1rem 2rem;
             box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
         }
 
         .header h1 {
             color: #1a202c;
             font-weight: 600;
             font-size: 1.5rem;
+        }
+
+        .export-btn {
+            background: #3182ce;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            padding: 0.5rem 1rem;
+            font-size: 0.875rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        .export-btn:hover {
+            background: #2c5282;
+        }
+
+        @media print {
+            .header, .toolbar, .column-header, .column:first-child {
+                display: none !important;
+            }
+            .container, .main-content, .column {
+                display: block !important;
+                height: auto !important;
+            }
+            .main-content {
+                background: white !important;
+            }
+            .html-editor {
+                padding: 0 !important;
+                overflow: visible !important;
+            }
+            body {
+                background: white;
+                height: auto;
+            }
         }
 
         .toolbar {
@@ -264,6 +304,7 @@
         <div class="container">
             <div class="header">
                 <h1>Markdown Editor</h1>
+                <button class="export-btn" @click="printExport">Print / Export</button>
             </div>
             
 
@@ -415,6 +456,10 @@
                     });
                 },
                 
+                printExport() {
+                    window.print();
+                },
+
                 formatHtml(command, value = null) {
                     this.$refs.htmlEditor.focus();
                     
